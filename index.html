@@ -27,11 +27,21 @@
                     },
                     animation: {
                         'float': 'float 6s ease-in-out infinite',
+                        'fade-in': 'fadeIn 0.3s ease-out forwards',
+                        'scale-up': 'scaleUp 0.3s ease-out forwards',
                     },
                     keyframes: {
                         float: {
                             '0%, 100%': { transform: 'translateY(0)' },
                             '50%': { transform: 'translateY(-10px)' },
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        scaleUp: {
+                            '0%': { transform: 'scale(0.9)', opacity: '0' },
+                            '100%': { transform: 'scale(1)', opacity: '1' },
                         }
                     }
                 }
@@ -86,8 +96,8 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            md:flex-direction: row;
         }
+        @media (min-width: 768px) { .access-card { flex-direction: row; } }
 
         .log-area {
             background: rgba(241, 245, 249, 0.5); /* Slate-100 translucent */
@@ -115,6 +125,42 @@
         /* 滚动条隐藏 */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+
+        /* === 弹窗样式 === */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(5px);
+            z-index: 100;
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .modal-overlay.open { opacity: 1; pointer-events: auto; }
+        
+        .modal-content {
+            background: white;
+            width: 90%; max-width: 500px;
+            border-radius: 24px;
+            padding: 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+            position: relative;
+        }
+        .modal-overlay.open .modal-content { transform: scale(1); }
+
+        .close-btn {
+            position: absolute; top: 1rem; right: 1rem;
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            background: #f1f5f9;
+            display: flex; justify-content: center; align-items: center;
+            cursor: pointer; color: #64748b;
+            transition: all 0.2s;
+        }
+        .close-btn:hover { background: #e2e8f0; color: #0f172a; }
+
     </style>
 </head>
 <body class="antialiased text-slate-800 selection:bg-brand-100 selection:text-brand-900">
@@ -144,8 +190,8 @@
                                 <span>NAU ➔ CUHK (M.Sc.)</span>
                             </div>
                             <div class="flex items-center gap-3 text-slate-600">
-                                <span class="w-6 h-6 bg-slate-100 rounded-lg flex items-center justify-center text-xs">🤖</span>
-                                <span>Robotics & Backend</span>
+                                <span class="w-6 h-6 bg-slate-100 rounded-lg flex items-center justify-center text-xs">💻</span>
+                                <span>Backend & LLM Dev</span>
                             </div>
                             <div class="flex items-center gap-3 text-slate-600">
                                 <span class="w-6 h-6 bg-slate-100 rounded-lg flex items-center justify-center text-xs">📍</span>
@@ -181,7 +227,7 @@
                             </div>
                             <p>> Loading tech stack modules:</p>
                             <p class="text-blue-600 font-medium pl-2">-> torch, langchain, mysql</p>
-                            <p class="text-blue-600 font-medium pl-2">-> docker, linux, git</p>
+                            <p class="text-blue-600 font-medium pl-2">-> docker, linux, redis</p>
                             <p>> Checking project assets...</p>
                             <p>... Loaded "Tomato_Disease_Detection"</p>
                             <p>... Loaded "Leaf_Segmentation_Mask_RCNN"</p>
@@ -228,18 +274,17 @@
                     </h1>
                     
                     <p class="text-lg text-slate-600 max-w-lg leading-relaxed">
-                        Coding reality into robots.
+                        Looking for internship now.
                         <br>
-                        从 CV 算法到 <span class="font-bold text-slate-800">LLM Agents</span>，致力于构建具有“具身智能”的机器人系统。
-                    </p>
+                        <span class="font-bold text-slate-800">后端</span> + <span class="font-bold text-slate-800">LLM应用开发</span>
 
                     <div class="flex gap-4 pt-4">
                         <a href="#projects" class="hoverable-el px-6 py-3 bg-slate-900 text-white rounded-xl font-medium hover:bg-blue-600 transition shadow-lg hover:shadow-blue-500/30 transform hover:-translate-y-1">
                             View Projects
                         </a>
-                        <a href="mailto:18522497692@163.com" class="hoverable-el px-6 py-3 bg-white/80 text-slate-700 border border-slate-200 rounded-xl font-medium hover:bg-white transition backdrop-blur-sm">
+                        <button id="contact-trigger" class="hoverable-el px-6 py-3 bg-white/80 text-slate-700 border border-slate-200 rounded-xl font-medium hover:bg-white transition backdrop-blur-sm">
                             Contact Me
-                        </a>
+                        </button>
                     </div>
                 </div>
 
@@ -254,12 +299,12 @@
                         </div>
                         <div class="space-y-2">
                             <p>➜  ~  <span class="text-green-400">whoami</span></p>
-                            <p class="text-gray-400">> Nanjing Agricultural University (Top 20%)</p>
-                            <p class="text-gray-400">> Incoming M.Sc. Robotics @ CUHK</p>
-                            <p class="text-gray-400">> Full Stack Developer (Backend & AI)</p>
+                            <p class="text-gray-400">> Nanjing Agricultural University (Major: CS & Tech) 2022-2026</p>
+                            <p class="text-gray-400">> Incoming M.Sc. Robotics @ CUHK 2026-2027</p>
+                            <p class="text-gray-400">> Focus: Backend Architecture & LLM Apps</p>
                             <br>
-                            <p>➜  ~  <span class="text-green-400">cat current_focus.txt</span></p>
-                            <p class="text-yellow-300">"Connecting LLMs with Physical World via Robotics."</p>
+                            <p>➜  ~  <span class="text-green-400">cat career_goal.txt</span></p>
+                            <p class="text-yellow-300">"Leveraging Robotics background to solve complex system engineering problems."</p>
                             <br>
                             <p>➜  ~  <span id="typewriter" class="text-blue-400"></span><span class="cursor-blink">▋</span></p>
                         </div>
@@ -308,14 +353,19 @@
                         <span>💡</span> My Thoughts
                     </h3>
                     <div class="space-y-3">
-                        <a href="#" class="block p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 transition group/item">
-                            <div class="font-bold text-sm mb-1 group-hover/item:text-blue-400 transition">从 YOLO 到 Agent</div>
-                            <p class="text-[10px] text-gray-400">为何我要转向具身智能？</p>
-                        </a>
-                        <a href="#" class="block p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 transition group/item">
-                            <div class="font-bold text-sm mb-1 group-hover/item:text-blue-400 transition">Streamlit 的局限性</div>
-                            <p class="text-[10px] text-gray-400">后端架构的 Trade-off 复盘。</p>
-                        </a>
+                        <button class="thought-trigger block w-full text-left p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 transition group/item" 
+                                data-title="Agent 的规划能力边界与反思" 
+                                data-content="在构建基于 LangChain 的 Agent 时，我发现 ReAct 框架虽然通用，但在处理长链条任务时容易陷入死循环。我尝试引入了 Plan-and-Solve 策略，先生成宏观计划再执行，这在复杂任务上的成功率提升了 30%。但我认为，真正的瓶颈在于 LLM 的 Context Window 和推理速度的 Trade-off。">
+                            <div class="font-bold text-sm mb-1 group-hover/item:text-blue-400 transition">Agent 的规划能力反思</div>
+                            <p class="text-[10px] text-gray-400">ReAct vs Plan-and-Solve 的实践对比。</p>
+                        </button>
+                        
+                        <button class="thought-trigger block w-full text-left p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 transition group/item"
+                                data-title="RAG 检索增强生成的落地挑战"
+                                data-content="RAG 是目前解决幻觉的最佳方案，但单纯的 Vector Search 并不完美。在实际项目中，我发现关键词匹配（BM25）与向量检索的混合检索（Hybrid Search）能显著提高召回率。此外，对切片（Chunking）策略的优化——例如基于语义而非固定字符数切分，对最终回答质量的影响比模型本身更大。">
+                            <div class="font-bold text-sm mb-1 group-hover/item:text-blue-400 transition">RAG 系统的落地挑战</div>
+                            <p class="text-[10px] text-gray-400">混合检索与语义切片的思考。</p>
+                        </button>
                     </div>
                 </div>
 
@@ -336,13 +386,14 @@
                             <span class="px-3 py-1.5 bg-white/20 backdrop-blur-md rounded-lg text-xs font-mono border border-white/20">Golang</span>
                             <span class="px-3 py-1.5 bg-white/20 backdrop-blur-md rounded-lg text-xs font-mono border border-white/20">FastAPI</span>
                             <span class="px-3 py-1.5 bg-white/20 backdrop-blur-md rounded-lg text-xs font-mono border border-white/20">MySQL</span>
+                            <span class="px-3 py-1.5 bg-white/20 backdrop-blur-md rounded-lg text-xs font-mono border border-white/20">Redis</span>
                             <span class="px-3 py-1.5 bg-white/20 backdrop-blur-md rounded-lg text-xs font-mono border border-white/20">Docker</span>
                             <span class="px-3 py-1.5 bg-white/20 backdrop-blur-md rounded-lg text-xs font-mono border border-white/20">Linux</span>
                             
                             <span class="px-3 py-1.5 bg-indigo-500/50 backdrop-blur-md rounded-lg text-xs font-mono border border-indigo-400/30">LangChain</span>
                             <span class="px-3 py-1.5 bg-indigo-500/50 backdrop-blur-md rounded-lg text-xs font-mono border border-indigo-400/30">RAG</span>
                             <span class="px-3 py-1.5 bg-indigo-500/50 backdrop-blur-md rounded-lg text-xs font-mono border border-indigo-400/30">VectorDB</span>
-                            <span class="px-3 py-1.5 bg-indigo-500/50 backdrop-blur-md rounded-lg text-xs font-mono border border-indigo-400/30">Prompt Eng.</span>
+                            <span class="px-3 py-1.5 bg-indigo-500/50 backdrop-blur-md rounded-lg text-xs font-mono border border-indigo-400/30">Agent</span>
                         </div>
                     </div>
                 </div>
@@ -352,6 +403,52 @@
             <footer class="text-center text-slate-400 text-sm py-8 border-t border-slate-200">
                 <p>&copy; 2025 Zhou Zhengyi. <span class="hidden md:inline"> | </span> <br class="md:hidden"> Try typing the "Konami Code" (↑↑↓↓←→←→BA)</p>
             </footer>
+        </div>
+    </div>
+
+    <div id="contact-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal('contact-modal')">×</button>
+            <div class="text-center">
+                <div class="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">📬</div>
+                <h3 class="text-2xl font-bold text-slate-900 mb-2">Get in Touch</h3>
+                <p class="text-slate-500 text-sm mb-8">Feel free to reach out for collaborations or just a chat.</p>
+                
+                <div class="space-y-4">
+                    <div class="flex items-center p-4 bg-slate-50 rounded-xl border border-slate-100">
+                        <span class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm text-lg mr-4">📧</span>
+                        <div class="text-left flex-1">
+                            <div class="text-xs text-slate-400 font-bold uppercase">Email</div>
+                            <div class="text-slate-800 font-mono text-sm select-all">18522497692@163.com</div>
+                        </div>
+                    </div>
+
+                    <a href="https://github.com/zhousmoking" target="_blank" class="flex items-center p-4 bg-slate-50 rounded-xl border border-slate-100 hover:border-blue-200 hover:bg-blue-50/50 transition group">
+                        <span class="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm text-lg mr-4 group-hover:scale-110 transition">👾</span>
+                        <div class="text-left flex-1">
+                            <div class="text-xs text-slate-400 font-bold uppercase">GitHub</div>
+                            <div class="text-slate-800 font-mono text-sm">@zhousmoking</div>
+                        </div>
+                        <span class="text-slate-400 group-hover:translate-x-1 transition">→</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="thought-modal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal('thought-modal')">×</button>
+            <div class="text-left">
+                <div class="w-12 h-12 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center mb-4 text-xl">💡</div>
+                <h3 id="thought-title" class="text-xl font-bold text-slate-900 mb-4">Thinking Title</h3>
+                <div class="prose prose-sm text-slate-600 leading-relaxed">
+                    <p id="thought-content">Content goes here...</p>
+                </div>
+                <div class="mt-8 pt-4 border-t border-slate-100 text-xs text-slate-400 font-mono">
+                    Authored by Zhou Zhengyi
+                </div>
+            </div>
         </div>
     </div>
 
@@ -469,12 +566,55 @@
             }, 800);
         });
 
-        /* ================== 3. 其他交互 ================== */
+        /* ================== 3. 弹窗控制逻辑 (Modal Logic) ================== */
+        
+        // 通用关闭函数
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.remove('open');
+        }
+
+        // Contact Modal
+        const contactBtn = document.getElementById('contact-trigger');
+        const contactModal = document.getElementById('contact-modal');
+        
+        contactBtn.addEventListener('click', () => {
+            contactModal.classList.add('open');
+        });
+
+        // Thoughts Modal (Dynamic)
+        const thoughtTriggers = document.querySelectorAll('.thought-trigger');
+        const thoughtModal = document.getElementById('thought-modal');
+        const thoughtTitle = document.getElementById('thought-title');
+        const thoughtContent = document.getElementById('thought-content');
+
+        thoughtTriggers.forEach(trigger => {
+            trigger.addEventListener('click', (e) => {
+                e.preventDefault(); // 防止跳转
+                const title = trigger.getAttribute('data-title');
+                const content = trigger.getAttribute('data-content');
+                
+                thoughtTitle.innerText = title;
+                thoughtContent.innerText = content;
+                
+                thoughtModal.classList.add('open');
+            });
+        });
+
+        // 点击遮罩层关闭
+        window.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal-overlay')) {
+                e.target.classList.remove('open');
+            }
+        });
+
+
+        /* ================== 4. 其他交互 ================== */
         const cursor = document.getElementById('cursor');
         document.addEventListener('mousemove', (e) => {
             cursor.style.left = e.clientX + 'px'; cursor.style.top = e.clientY + 'px';
         });
-        document.querySelectorAll('.hoverable-el').forEach(el => {
+        document.querySelectorAll('.hoverable-el, button').forEach(el => {
             el.addEventListener('mouseenter', () => cursor.classList.add('active'));
             el.addEventListener('mouseleave', () => cursor.classList.remove('active'));
         });
