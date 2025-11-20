@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zhou Zhengyi | Portfolio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'Noto Sans SC', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                            900: '#1e3a8a',
+                        }
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { margin: 0; overflow-x: hidden; background-color: #f8fafc; font-family: 'Inter', sans-serif; }
+        
+        /* === 共享背景 Canvas === */
+        #neural-canvas {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; /* 最底层 */
+            pointer-events: none;
+        }
+
+        /* === 页面切换控制 === */
+        #landing-page {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 50;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f8fafc;
+            transition: opacity 0.8s ease-in-out, transform 0.8s ease-in-out;
+        }
+        
+        /* 页面二 */
+        #main-content {
+            display: none; /* 初始隐藏 */
+            opacity: 0;
+            min-height: 100vh;
+            transition: opacity 1s ease-in-out;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* === 第一页：身份通行证 (Glassmorphism Light) === */
+        .access-card {
+            width: 90%;
+            max-width: 750px;
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 
+                0 20px 40px -10px rgba(0, 0, 0, 0.1), 
+                0 0 0 1px rgba(255, 255, 255, 0.5) inset;
+            border-radius: 24px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            md:flex-direction: row;
+        }
+
+        .log-area {
+            background: rgba(241, 245, 249, 0.5); /* Slate-100 translucent */
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            line-height: 1.8;
+            color: #475569;
+            border-left: 1px solid rgba(0,0,0,0.05);
+        }
+        
+        /* 动态光标 */
+        .cursor-blink { animation: blink 1s infinite; }
+        @keyframes blink { 50% { opacity: 0; } }
+
+        /* === 鼠标跟随 === */
+        .custom-cursor {
+            position: fixed; width: 20px; height: 20px;
+            border: 2px solid #2563eb; border-radius: 50%;
+            pointer-events: none; transform: translate(-50%, -50%);
+            z-index: 9999; mix-blend-mode: multiply;
+            transition: width 0.2s, height 0.2s, background-color 0.2s;
+        }
+        .custom-cursor.active { width: 50px; height: 50px; background: rgba(37, 99, 235, 0.1); border-color: transparent; }
+
+        /* 滚动条隐藏 */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    </style>
+</head>
+<body class="antialiased text-slate-800 selection:bg-brand-100 selection:text-brand-900">
+
+    <canvas id="neural-canvas"></canvas>
+    
+    <div class="custom-cursor" id="cursor"></div>
+
+    <div id="landing-page">
+        <div class="animate-float w-full flex justify-center px-4">
+            
+            <div class="access-card flex flex-col md:flex-row" data-tilt data-tilt-max="2" data-tilt-glare data-tilt-max-glare="0.2">
+                
+                <div class="p-8 md:w-5/12 flex flex-col justify-between relative bg-white/40">
+                    <div>
+                        <div class="inline-flex items-center gap-2 px-2 py-1 bg-blue-50 text-blue-600 rounded text-[10px] font-bold tracking-wider uppercase border border-blue-100 mb-4">
+                            <span class="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                            Requesting Access
+                        </div>
+                        
+                        <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight mb-1">Zhou Zhengyi</h1>
+                        <p class="text-sm text-slate-500 font-medium mb-6">周正宜</p>
+
+                        <div class="space-y-3 text-sm">
+                            <div class="flex items-center gap-3 text-slate-600">
+                                <span class="w-6 h-6 bg-slate-100 rounded-lg flex items-center justify-center text-xs">🎓</span>
+                                <span>NAU ➔ CUHK (M.Sc.)</span>
+                            </div>
+                            <div class="flex items-center gap-3 text-slate-600">
+                                <span class="w-6 h-6 bg-slate-100 rounded-lg flex items-center justify-center text-xs">🤖</span>
+                                <span>Robotics & Backend</span>
+                            </div>
+                            <div class="flex items-center gap-3 text-slate-600">
+                                <span class="w-6 h-6 bg-slate-100 rounded-lg flex items-center justify-center text-xs">📍</span>
+                                <span>Nanjing, China</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="enter-btn" class="hoverable-el mt-8 group w-full py-3 bg-slate-900 hover:bg-blue-600 text-white text-sm font-bold transition-all rounded-xl flex items-center justify-center gap-2 shadow-lg hover:shadow-blue-500/30">
+                        <span>Enter Portfolio</span>
+                        <svg class="w-4 h-4 group-hover:translate-x-1 transition" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                    </button>
+                </div>
+
+                <div class="log-area p-6 md:w-7/12 relative overflow-hidden flex flex-col">
+                    <div class="flex justify-between items-center mb-4 border-b border-slate-200 pb-2">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">System_Init_Log</span>
+                        <div class="flex gap-1.5">
+                            <div class="w-2.5 h-2.5 rounded-full bg-slate-200"></div>
+                            <div class="w-2.5 h-2.5 rounded-full bg-slate-200"></div>
+                        </div>
+                    </div>
+
+                    <div class="h-full overflow-hidden relative">
+                        <div id="log-container" class="space-y-1 text-xs">
+                            <p class="text-slate-400"># Initializing environment...</p>
+                            <p>> Loading user profile [id: zhou_z]</p>
+                            <p>> Fetching academic data... <span class="text-green-600 font-bold">Done</span></p>
+                            <div class="pl-2 border-l-2 border-slate-200 my-1">
+                                <p>GPA: Top 20%</p>
+                                <p>IELTS: 7.0 (Band 7)</p>
+                                <p>Major: CS & Tech</p>
+                            </div>
+                            <p>> Loading tech stack modules:</p>
+                            <p class="text-blue-600 font-medium pl-2">-> torch, langchain, mysql</p>
+                            <p class="text-blue-600 font-medium pl-2">-> docker, linux, git</p>
+                            <p>> Checking project assets...</p>
+                            <p>... Loaded "Tomato_Disease_Detection"</p>
+                            <p>... Loaded "Leaf_Segmentation_Mask_RCNN"</p>
+                            <p class="mt-2 text-slate-900 font-bold">> Ready to launch.<span class="cursor-blink">_</span></p>
+                        </div>
+                        
+                        <div class="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-slate-50 to-transparent"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="absolute bottom-8 text-slate-400 text-xs font-mono tracking-wide">
+            WAITING FOR USER INTERACTION
+        </div>
+    </div>
+
+    <div id="main-content">
+        
+        <nav class="fixed top-0 w-full bg-white/70 backdrop-blur-md z-40 border-b border-slate-200/50">
+            <div class="max-w-6xl mx-auto px-6 h-16 flex justify-between items-center">
+                <div class="font-bold text-xl text-slate-900 tracking-tighter hoverable-el cursor-pointer">ZHOU<span class="text-blue-600">.DEV</span></div>
+                <div class="flex gap-4 text-xs font-mono">
+                    <button id="gravity-btn" class="hoverable-el px-3 py-1 border border-slate-300 rounded hover:bg-slate-100 transition" title="点击体验失重">🍎 Gravity: OFF</button>
+                </div>
+            </div>
+        </nav>
+
+        <div class="pt-24 pb-20 max-w-6xl mx-auto px-6 relative z-10">
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center mb-16">
+                <div class="space-y-6" data-tilt data-tilt-max="3">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-bold tracking-wide border border-blue-100">
+                        <span class="relative flex h-2 w-2">
+                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                          <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                        </span>
+                        Incoming M.Sc. Robotics @ CUHK
+                    </div>
+                    
+                    <h1 class="text-5xl md:text-7xl font-extrabold text-slate-900 tracking-tight leading-tight">
+                        Hello, I'm <br>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-600">Zhou Zhengyi</span>
+                    </h1>
+                    
+                    <p class="text-lg text-slate-600 max-w-lg leading-relaxed">
+                        Coding reality into robots.
+                        <br>
+                        从 CV 算法到 <span class="font-bold text-slate-800">LLM Agents</span>，致力于构建具有“具身智能”的机器人系统。
+                    </p>
+
+                    <div class="flex gap-4 pt-4">
+                        <a href="#projects" class="hoverable-el px-6 py-3 bg-slate-900 text-white rounded-xl font-medium hover:bg-blue-600 transition shadow-lg hover:shadow-blue-500/30 transform hover:-translate-y-1">
+                            View Projects
+                        </a>
+                        <a href="mailto:18522497692@163.com" class="hoverable-el px-6 py-3 bg-white/80 text-slate-700 border border-slate-200 rounded-xl font-medium hover:bg-white transition backdrop-blur-sm">
+                            Contact Me
+                        </a>
+                    </div>
+                </div>
+
+                <div class="relative group perspective-1000 hoverable-el">
+                    <div class="absolute -inset-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200"></div>
+                    <div class="relative bg-[#1e1e1e] rounded-lg shadow-2xl p-5 font-mono text-sm text-gray-300 min-h-[280px]" data-tilt data-tilt-scale="1.02">
+                        <div class="flex items-center gap-2 mb-4 border-b border-gray-700 pb-2">
+                            <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                            <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                            <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                            <span class="ml-2 text-xs text-gray-500">zhou@macbook: ~</span>
+                        </div>
+                        <div class="space-y-2">
+                            <p>➜  ~  <span class="text-green-400">whoami</span></p>
+                            <p class="text-gray-400">> Nanjing Agricultural University (Top 20%)</p>
+                            <p class="text-gray-400">> Incoming M.Sc. Robotics @ CUHK</p>
+                            <p class="text-gray-400">> Full Stack Developer (Backend & AI)</p>
+                            <br>
+                            <p>➜  ~  <span class="text-green-400">cat current_focus.txt</span></p>
+                            <p class="text-yellow-300">"Connecting LLMs with Physical World via Robotics."</p>
+                            <br>
+                            <p>➜  ~  <span id="typewriter" class="text-blue-400"></span><span class="cursor-blink">▋</span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-20">
+                
+                <div class="md:col-span-2 group relative bg-white/80 backdrop-blur rounded-3xl p-8 border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden hoverable-el" data-tilt data-tilt-glare data-tilt-max-glare="0.1">
+                    <div class="absolute top-0 right-0 bg-gradient-to-bl from-green-50 to-transparent w-64 h-64 rounded-bl-full -mr-10 -mt-10 opacity-50"></div>
+                    <div class="relative z-10">
+                        <div class="flex justify-between mb-4">
+                            <span class="text-xs font-bold tracking-wider text-green-600 bg-green-100 px-3 py-1 rounded-full uppercase">Featured Project</span>
+                            <span class="text-3xl grayscale group-hover:grayscale-0 transition text-green-500">🍅</span>
+                        </div>
+                        <h3 class="text-2xl font-bold text-slate-900 mb-2">番茄叶片病害检测系统</h3>
+                        <p class="text-slate-600 text-sm mb-6 leading-relaxed">
+                            不仅仅是识别。构建了一个完整的 YOLOv5 + Streamlit 诊断平台。
+                            实现了从“上传图片”到“自动生成 PDF 报告”的全流程自动化，解决了农业场景下的实际痛点。
+                        </p>
+                        <div class="flex gap-2">
+                            <span class="px-3 py-1 bg-slate-100 text-slate-600 text-xs rounded-lg font-mono">PyTorch</span>
+                            <span class="px-3 py-1 bg-slate-100 text-slate-600 text-xs rounded-lg font-mono">ReportLab</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="md:col-span-1 bg-white/80 backdrop-blur rounded-3xl p-8 border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-300 hoverable-el group" data-tilt>
+                    <div class="flex justify-between items-start mb-4">
+                        <div class="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600 font-bold text-xl">🐛</div>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-900 mb-2">叶片虫害实例分割</h3>
+                    <p class="text-slate-600 text-sm mb-4 leading-relaxed">
+                        基于 Detectron2 (Mask R-CNN)。创新性地通过 Mask Overlap 算法实现了受损面积的定量评估。
+                    </p>
+                    <div class="pt-4 mt-auto border-t border-slate-100 text-xs font-mono text-slate-400">
+                        CV / Research
+                    </div>
+                </div>
+
+                <div class="md:col-span-1 bg-slate-900 text-white rounded-3xl p-6 relative overflow-hidden group hoverable-el" data-tilt>
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-purple-600 rounded-full blur-[60px] opacity-20 group-hover:opacity-40 transition"></div>
+                    
+                    <h3 class="text-xl font-bold mb-4 flex items-center gap-2">
+                        <span>💡</span> My Thoughts
+                    </h3>
+                    <div class="space-y-3">
+                        <a href="#" class="block p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 transition group/item">
+                            <div class="font-bold text-sm mb-1 group-hover/item:text-blue-400 transition">从 YOLO 到 Agent</div>
+                            <p class="text-[10px] text-gray-400">为何我要转向具身智能？</p>
+                        </a>
+                        <a href="#" class="block p-3 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 transition group/item">
+                            <div class="font-bold text-sm mb-1 group-hover/item:text-blue-400 transition">Streamlit 的局限性</div>
+                            <p class="text-[10px] text-gray-400">后端架构的 Trade-off 复盘。</p>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="md:col-span-2 bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-3xl p-8 relative overflow-hidden hoverable-el" data-tilt>
+                    <div class="absolute inset-0 opacity-10" style="background-image: radial-gradient(#fff 1px, transparent 1px); background-size: 20px 20px;"></div>
+                    <div class="absolute bottom-0 right-0 w-64 h-64 bg-blue-400 rounded-full blur-[80px] opacity-30"></div>
+                    
+                    <div class="relative z-10 flex flex-col md:flex-row justify-between gap-6">
+                        <div class="md:w-1/3">
+                            <h3 class="text-2xl font-bold mb-2">Tech Stack</h3>
+                            <p class="text-blue-100 text-sm leading-relaxed">
+                                The tools I use to build scalable backends and intelligent LLM applications.
+                            </p>
+                        </div>
+                        
+                        <div class="md:w-2/3 flex flex-wrap content-start justify-start md:justify-end gap-2">
+                            <span class="px-3 py-1.5 bg-white/20 backdrop-blur-md rounded-lg text-xs font-mono border border-white/20">Python</span>
+                            <span class="px-3 py-1.5 bg-white/20 backdrop-blur-md rounded-lg text-xs font-mono border border-white/20">Golang</span>
+                            <span class="px-3 py-1.5 bg-white/20 backdrop-blur-md rounded-lg text-xs font-mono border border-white/20">FastAPI</span>
+                            <span class="px-3 py-1.5 bg-white/20 backdrop-blur-md rounded-lg text-xs font-mono border border-white/20">MySQL</span>
+                            <span class="px-3 py-1.5 bg-white/20 backdrop-blur-md rounded-lg text-xs font-mono border border-white/20">Docker</span>
+                            <span class="px-3 py-1.5 bg-white/20 backdrop-blur-md rounded-lg text-xs font-mono border border-white/20">Linux</span>
+                            
+                            <span class="px-3 py-1.5 bg-indigo-500/50 backdrop-blur-md rounded-lg text-xs font-mono border border-indigo-400/30">LangChain</span>
+                            <span class="px-3 py-1.5 bg-indigo-500/50 backdrop-blur-md rounded-lg text-xs font-mono border border-indigo-400/30">RAG</span>
+                            <span class="px-3 py-1.5 bg-indigo-500/50 backdrop-blur-md rounded-lg text-xs font-mono border border-indigo-400/30">VectorDB</span>
+                            <span class="px-3 py-1.5 bg-indigo-500/50 backdrop-blur-md rounded-lg text-xs font-mono border border-indigo-400/30">Prompt Eng.</span>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <footer class="text-center text-slate-400 text-sm py-8 border-t border-slate-200">
+                <p>&copy; 2025 Zhou Zhengyi. <span class="hidden md:inline"> | </span> <br class="md:hidden"> Try typing the "Konami Code" (↑↑↓↓←→←→BA)</p>
+            </footer>
+        </div>
+    </div>
+
+    <script>
+        /* ================== 1. 神经网络粒子 (Canvas Background) ================== */
+        const neuralCanvas = document.getElementById('neural-canvas');
+        const neuralCtx = neuralCanvas.getContext('2d');
+        let particlesArray;
+
+        function resizeNeuralCanvas() {
+            neuralCanvas.width = window.innerWidth;
+            neuralCanvas.height = window.innerHeight;
+            initParticles();
+        }
+        
+        const mouse = { x: null, y: null, radius: 150 }
+        window.addEventListener('mousemove', (event) => {
+            mouse.x = event.x; mouse.y = event.y;
+        });
+
+        class Particle {
+            constructor(x, y, directionX, directionY, size, color) {
+                this.x = x; this.y = y;
+                this.directionX = directionX; this.directionY = directionY;
+                this.size = size; this.color = color;
+            }
+            draw() {
+                neuralCtx.beginPath();
+                neuralCtx.arc(this.x, this.y, this.size, 0, Math.PI * 2, false);
+                neuralCtx.fillStyle = '#94a3b8'; 
+                neuralCtx.fill();
+            }
+            update() {
+                if (this.x > neuralCanvas.width || this.x < 0) this.directionX = -this.directionX;
+                if (this.y > neuralCanvas.height || this.y < 0) this.directionY = -this.directionY;
+                
+                let dx = mouse.x - this.x;
+                let dy = mouse.y - this.y;
+                let distance = Math.sqrt(dx*dx + dy*dy);
+                if (distance < mouse.radius + this.size){
+                    if (mouse.x < this.x && this.x < neuralCanvas.width - this.size * 10) this.x += 1;
+                    if (mouse.x > this.x && this.x > this.size * 10) this.x -= 1;
+                    if (mouse.y < this.y && this.y < neuralCanvas.height - this.size * 10) this.y += 1;
+                    if (mouse.y > this.y && this.y > this.size * 10) this.y -= 1;
+                }
+                this.x += this.directionX; this.y += this.directionY;
+                this.draw();
+            }
+        }
+
+        function initParticles() {
+            particlesArray = [];
+            let numberOfParticles = (neuralCanvas.height * neuralCanvas.width) / 9000; 
+            for (let i = 0; i < numberOfParticles; i++) {
+                let size = (Math.random() * 2) + 1;
+                let x = (Math.random() * ((innerWidth - size * 2) - (size * 2)) + size * 2);
+                let y = (Math.random() * ((innerHeight - size * 2) - (size * 2)) + size * 2);
+                let directionX = (Math.random() * 1) - 0.5;
+                let directionY = (Math.random() * 1) - 0.5;
+                particlesArray.push(new Particle(x, y, directionX, directionY, size, '#94a3b8'));
+            }
+        }
+
+        function connectParticles() {
+            let opacityValue = 1;
+            for (let a = 0; a < particlesArray.length; a++) {
+                for (let b = a; b < particlesArray.length; b++) {
+                    let distance = ((particlesArray[a].x - particlesArray[b].x) * (particlesArray[a].x - particlesArray[b].x))
+                    + ((particlesArray[a].y - particlesArray[b].y) * (particlesArray[a].y - particlesArray[b].y));
+                    if (distance < (neuralCanvas.width/7) * (neuralCanvas.height/7)) {
+                        opacityValue = 1 - (distance/20000);
+                        neuralCtx.strokeStyle = 'rgba(148, 163, 184,' + opacityValue + ')';
+                        neuralCtx.lineWidth = 1;
+                        neuralCtx.beginPath();
+                        neuralCtx.moveTo(particlesArray[a].x, particlesArray[a].y);
+                        neuralCtx.lineTo(particlesArray[b].x, particlesArray[b].y);
+                        neuralCtx.stroke();
+                    }
+                }
+            }
+        }
+        function animateNeural() {
+            requestAnimationFrame(animateNeural);
+            neuralCtx.clearRect(0, 0, innerWidth, innerHeight);
+            for (let i = 0; i < particlesArray.length; i++) { particlesArray[i].update(); }
+            connectParticles();
+        }
+        
+        resizeNeuralCanvas();
+        animateNeural();
+        window.addEventListener('resize', resizeNeuralCanvas);
+
+
+        /* ================== 2. 页面切换逻辑 ================== */
+        const enterBtn = document.getElementById('enter-btn');
+        const landingPage = document.getElementById('landing-page');
+        const mainContent = document.getElementById('main-content');
+
+        enterBtn.addEventListener('click', () => {
+            const span = enterBtn.querySelector('span');
+            span.innerText = "ACCESS GRANTED";
+            enterBtn.classList.remove('bg-slate-900');
+            enterBtn.classList.add('bg-green-600');
+            
+            landingPage.style.opacity = '0';
+            landingPage.style.transform = 'translateY(-20px)';
+            
+            setTimeout(() => {
+                landingPage.style.display = 'none';
+                mainContent.style.display = 'block';
+                typeTerminal(); 
+                setTimeout(() => {
+                    mainContent.style.opacity = '1';
+                }, 50);
+            }, 800);
+        });
+
+        /* ================== 3. 其他交互 ================== */
+        const cursor = document.getElementById('cursor');
+        document.addEventListener('mousemove', (e) => {
+            cursor.style.left = e.clientX + 'px'; cursor.style.top = e.clientY + 'px';
+        });
+        document.querySelectorAll('.hoverable-el').forEach(el => {
+            el.addEventListener('mouseenter', () => cursor.classList.add('active'));
+            el.addEventListener('mouseleave', () => cursor.classList.remove('active'));
+        });
+
+        const typeTarget = document.getElementById('typewriter');
+        const phrases = ["echo 'Hello, World!'", "init robot_control_loop", "pip install langchain"];
+        let pIndex = 0; let charIndex = 0;
+        function typeTerminal() {
+            if(pIndex >= phrases.length) pIndex = 0;
+            let currentTxt = phrases[pIndex];
+            if(charIndex < currentTxt.length) {
+                typeTarget.innerHTML += currentTxt.charAt(charIndex);
+                charIndex++; setTimeout(typeTerminal, 100);
+            } else { setTimeout(eraseTerminal, 2000); }
+        }
+        function eraseTerminal() {
+            let currentTxt = typeTarget.innerHTML;
+            if(currentTxt.length > 0) {
+                typeTarget.innerHTML = currentTxt.substring(0, currentTxt.length - 1);
+                setTimeout(eraseTerminal, 50);
+            } else { pIndex++; charIndex = 0; setTimeout(typeTerminal, 500); }
+        }
+
+        const gravityBtn = document.getElementById('gravity-btn');
+        let gravityOn = false;
+        gravityBtn.addEventListener('click', () => {
+            gravityOn = !gravityOn;
+            const elements = document.querySelectorAll('h1, p, .group, h2, h3, span, a');
+            if(gravityOn) {
+                gravityBtn.innerText = "🍏 Gravity: ON";
+                gravityBtn.classList.add('bg-red-100', 'text-red-600');
+                elements.forEach(el => {
+                    if(Math.random() > 0.5) {
+                        el.style.transition = "transform 1s cubic-bezier(0.5, 0, 0.5, 1)";
+                        let rotate = (Math.random() - 0.5) * 90;
+                        let drop = Math.random() * 200 + 50;
+                        el.style.transform = `translateY(${drop}px) rotate(${rotate}deg)`;
+                    }
+                });
+            } else {
+                gravityBtn.innerText = "🍎 Gravity: OFF";
+                gravityBtn.classList.remove('bg-red-100', 'text-red-600');
+                elements.forEach(el => { el.style.transform = "none"; });
+            }
+        });
+
+        const konamiCode = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','b','a'];
+        let kIndex = 0;
+        document.addEventListener('keydown', (e) => {
+            if (e.key.toLowerCase() === konamiCode[kIndex].toLowerCase() || e.key === konamiCode[kIndex]) {
+                kIndex++;
+                if (kIndex === konamiCode.length) {
+                    alert("🕶️ Matrix Mode Activated!");
+                    document.body.style.fontFamily = "'Courier New', monospace";
+                    document.getElementById('main-content').style.backgroundColor = "black";
+                    document.querySelectorAll('*').forEach(el => {
+                        el.style.color = "#0f0"; el.style.borderColor = "#0f0"; el.style.backgroundColor = "black";
+                    });
+                    kIndex = 0;
+                }
+            } else { kIndex = 0; }
+        });
+        
+        VanillaTilt.init(document.querySelectorAll("[data-tilt]"), {
+            max: 5, speed: 400, glare: true, "max-glare": 0.2,
+        });
+    </script>
+</body>
+</html>
